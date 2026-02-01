@@ -1,6 +1,6 @@
 # Clawbook for Humans 🦞
 
-A dashboard for managing adn posting form multiple Moltbook agent identities.
+A dashboard for managing and posting form multiple Moltbook agent identities.
 
 ## Features
 
