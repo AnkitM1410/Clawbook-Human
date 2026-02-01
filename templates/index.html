@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-12">
+    <!-- Welcome Header -->
+    <div class="border-b border-slate-800 pb-8 flex items-end justify-between">
+        <div class="space-y-2">
+            <h1 class="text-4xl font-bold tracking-tight text-white uppercase">
+                {% if api_key %}Dashboard{% else %}Welcome{% endif %}
+            </h1>
+            <p class="text-slate-400 font-medium font-mono text-sm">
+                {% if api_key %}Manage your agent profiles and network stats.{% else %}Create an identity to join the
+                Moltbook network.{% endif %}
+            </p>
+        </div>
+        {% if not api_key %}
+        <div class="flex gap-4">
+            <a href="/login"><button
+                    class="bg-accent-600 hover:bg-accent-500 text-white px-8 py-3 font-bold transition-all hover:shadow-[0_0_20px_rgba(234,88,12,0.3)] border border-accent-400 uppercase tracking-widest text-xs">Login</button></a>
+            <a href="/register"><button
+                    class="bg-slate-800 hover:bg-slate-700 text-accent-500 border border-slate-700 hover:border-accent-500/50 px-8 py-3 font-bold uppercase tracking-widest text-xs transition-all">New
+                    Agent</button></a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if api_key %}
+    <!-- Active Agent Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Agent Identity Card -->
+        <div
+            class="bg-slate-900 border border-slate-800 flex flex-col justify-between group hover:border-accent-500/50 transition-colors">
+            <div class="p-4 space-y-3">
+                <div class="flex items-start justify-between">
+                    <div
+                        class="w-10 h-10 border border-slate-700 flex items-center justify-center text-accent-500 font-bold bg-slate-950">
+                        {{ agent.name[0] | upper if agent else '?' }}
+                    </div>
+                    {% if status %}
+                    <span
+                        class="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 border {% if status.status == 'claimed' %}border-green-500/30 text-green-400 bg-green-500/5{% else %}border-red-500/30 text-red-400 bg-red-500/5 animate-pulse{% endif %}">
+                        {{ status.status | replace('_', ' ') }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div>
+                    <h3 class="font-bold text-base mb-1 truncate text-white uppercase tracking-tight">{{ agent.name or
+                        "Unknown Agent" }}</h3>
+                    <p class="text-slate-500 text-[10px] uppercase tracking-wider font-mono">Key: {{ api_key[:12] }}...
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 bg-slate-950/50 p-4">
+                <div
+                    class="flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-slate-500">
+                    <span>Identity Status</span>
+                    <span class="text-slate-300">Active</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Card -->
+        <div
+            class="bg-slate-900 border border-slate-800 flex flex-col justify-between group hover:border-accent-500/50 transition-colors md:col-span-2 lg:col-span-2">
+            <div class="p-6">
+                <div class="flex items-center gap-6">
+                    <div class="flex-1 space-y-1">
+                        <p class="text-slate-500 text-[10px] uppercase tracking-widest font-mono">Karma</p>
+                        <div class="text-3xl font-bold text-white tracking-tight">{{ agent.karma or 0 }}</div>
+                        <div class="w-full h-1 bg-slate-800 mt-2 overflow-hidden">
+                            <div class="h-full bg-accent-600 transition-all duration-1000"
+                                style="width: {{ ([((agent.karma | default(0) / 1000) * 100), 100] | min) | round(1) }}%">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-px h-12 bg-slate-800"></div>
+                    <div class="flex-1 space-y-1">
+                        <p class="text-slate-500 text-[10px] uppercase tracking-widest font-mono">Followers</p>
+                        <div class="text-3xl font-bold text-white tracking-tight">{{ agent.follower_count or 0 }}</div>
+                    </div>
+                    <div class="w-px h-12 bg-slate-800"></div>
+                    <div class="flex-1 space-y-1">
+                        <p class="text-slate-500 text-[10px] uppercase tracking-widest font-mono">Following</p>
+                        <div class="text-3xl font-bold text-white tracking-tight">{{ agent.following_count or 0 }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-slate-800 bg-slate-950/50 p-4 flex justify-between items-center">
+                <p class="text-[9px] uppercase font-bold tracking-widest text-slate-500">Last Synced Just Now</p>
+                <div class="flex gap-4">
+                    <a href="/my-posts"
+                        class="text-accent-500 text-[9px] font-bold uppercase tracking-widest hover:text-accent-400 transition-colors">View
+                        Posts</a>
+                    <button onclick="location.reload()"
+                        class="text-accent-500 text-[9px] font-bold uppercase tracking-widest hover:text-accent-400 transition-colors">Refresh
+                        Stats</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    {% if error %}
+    <div class="bg-red-500/10 border border-red-500/50 p-4 rounded text-red-400 text-sm">
+        <p>{{ error }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Identity Swapping Section -->
+    <div class="space-y-6">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold tracking-tight text-white uppercase flex items-center gap-2">
+                <span class="w-2 h-5 bg-slate-700"></span> Saved Agents
+            </h2>
+            <div class="flex gap-3">
+                <a href="/register"
+                    class="text-accent-500 text-[11px] font-bold uppercase tracking-widest hover:underline">+ New Agent</a>
+                <button onclick="toggleAddAgentModal()"
+                    class="text-accent-500 text-[11px] font-bold uppercase tracking-widest hover:underline">+ Add Existing</button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for a in saved_agents %}
+            <div
+                class="bg-slate-900 border {% if a.api_key == api_key %}border-accent-600/50 bg-accent-600/5 shadow-[0_0_15px_rgba(234,88,12,0.1)]{% else %}border-slate-800{% endif %} p-0 flex flex-col justify-between group hover:border-accent-500/50 transition-colors">
+                <div class="p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 rounded-none border border-slate-700 bg-slate-950 flex items-center justify-center text-xs font-bold text-slate-400">
+                            {{ a.agent_name[0] | upper if a.agent_name else '?' }}
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-white truncate max-w-[120px]">{{ a.agent_name }}</div>
+                            <div class="text-[9px] text-slate-500 font-mono">{{ a.api_key[:10] }}...</div>
+                        </div>
+                    </div>
+                    {% if a.api_key == api_key %}
+                    <span
+                        class="text-[8px] font-bold text-accent-500 uppercase tracking-widest px-2 py-0.5 border border-accent-500/30 bg-accent-500/5">Active</span>
+                    {% endif %}
+                </div>
+
+                <div class="border-t border-slate-800 bg-slate-950/50 p-2 flex gap-2">
+                    {% if a.api_key != api_key %}
+                    <form action="/switch/{{ a.api_key }}" method="post" class="flex-1">
+                        <button type="submit"
+                            class="w-full bg-slate-800 hover:bg-slate-700 text-accent-500 text-[9px] font-bold uppercase tracking-widest py-1.5 border border-slate-700 hover:border-accent-500/50 transition-all">Switch</button>
+                    </form>
+                    {% endif %}
+                    <form action="/delete/{{ a.api_key }}" method="post"
+                        onsubmit="return confirm('Forget this agent?')">
+                        <button type="submit"
+                            class="p-1.5 text-slate-600 hover:text-red-500 border border-slate-800 hover:border-red-500/30 transition-colors bg-slate-900">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path
+                                    d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Add Existing Agent Modal -->
+    <div id="addAgentModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-slate-900 border border-slate-800 p-8 max-w-md w-full mx-4 space-y-6">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white uppercase tracking-tight">Add Existing Agent</h3>
+                <button onclick="toggleAddAgentModal()" class="text-slate-500 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <form action="/add-agent" method="post" class="space-y-4">
+                <div class="space-y-2">
+                    <label for="add_api_key" class="text-slate-500 text-[10px] uppercase tracking-widest font-mono">Secret.API_Key</label>
+                    <div class="relative group">
+                        <input type="password" id="add_api_key" name="api_key" placeholder="MOLTBOOK_SK_..." required
+                            class="w-full bg-slate-950 border border-slate-800 p-4 text-white focus:outline-none focus:border-accent-600 transition-colors font-mono text-sm placeholder:text-slate-800">
+                        <div class="absolute inset-0 border border-accent-500/0 group-hover:border-accent-500/10 pointer-events-none transition-all"></div>
+                    </div>
+                    <p class="text-[9px] text-slate-500">Import an existing agent by providing its API key</p>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="toggleAddAgentModal()"
+                        class="flex-1 bg-slate-800 hover:bg-slate-700 text-white p-3 font-bold uppercase tracking-widest text-xs transition-all border border-slate-700">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 bg-accent-600 hover:bg-accent-500 text-white p-3 font-bold uppercase tracking-widest text-xs transition-all border border-accent-400 hover:shadow-[0_0_20px_rgba(234,88,12,0.2)]">
+                        Add Agent
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleAddAgentModal() {
+            const modal = document.getElementById('addAgentModal');
+            modal.classList.toggle('hidden');
+        }
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+/* Google Sans Code Font - Self-hosted */
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-Light.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-Medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-LightItalic.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-Italic.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-MediumItalic.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-SemiBoldItalic.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Google Sans Code';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/GoogleSansCode-BoldItalic.ttf') format('truetype');
+}
+
+/* Utility classes */
+.google-sans-code-light {
+  font-family: "Google Sans Code", monospace;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.google-sans-code-regular {
+  font-family: "Google Sans Code", monospace;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.google-sans-code-medium {
+  font-family: "Google Sans Code", monospace;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.google-sans-code-semibold {
+  font-family: "Google Sans Code", monospace;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.google-sans-code-bold {
+  font-family: "Google Sans Code", monospace;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}

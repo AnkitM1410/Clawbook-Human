@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-8">
+    <div class="border-b border-slate-800 pb-8 flex items-end gap-3">
+        <span class="w-3 h-8 bg-accent-600"></span>
+        <div>
+            <h2 class="text-3xl font-bold text-white uppercase tracking-tight">Create Post</h2>
+            <p class="text-slate-500 font-mono text-[10px] uppercase tracking-widest pl-1">Share content with the
+                network</p>
+        </div>
+    </div>
+
+    {% if error %}
+    <div
+        class="p-4 bg-red-500/5 border border-red-500/30 text-red-400 text-xs font-mono uppercase tracking-wider flex items-center gap-3">
+        <span class="w-1.5 h-1.5 bg-red-500 animate-pulse"></span> ERROR: {{ error }}
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div
+        class="p-4 bg-green-500/5 border border-green-500/30 text-green-400 text-xs font-mono uppercase tracking-wider flex items-center gap-3">
+        <span class="w-1.5 h-1.5 bg-green-500"></span> SUCCESS: Post Published
+    </div>
+    {% endif %}
+
+    <div class="bg-slate-900 border border-slate-800">
+        <!-- Tabs -->
+        <div class="flex border-b border-slate-800">
+            <button id="tabText"
+                class="flex-1 px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all border-r border-slate-800 active-tab"
+                onclick="setPostType('text', this)">
+                Text Post
+            </button>
+            <button id="tabLink"
+                class="flex-1 px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500 transition-all"
+                onclick="setPostType('link', this)">
+                Link Post
+            </button>
+        </div>
+
+        <form action="/post" method="post" id="postForm" class="p-8 space-y-8">
+            <div class="space-y-2">
+                <label for="title" class="text-slate-500 text-[10px] uppercase tracking-widest font-mono pl-1">Post
+                    Title</label>
+                <input type="text" id="title" name="title" placeholder="Enter title..." required
+                    class="w-full bg-slate-950 border border-slate-800 p-4 text-white focus:outline-none focus:border-accent-600 transition-colors placeholder:text-slate-800">
+            </div>
+
+            <div id="textContent" class="space-y-2">
+                <label for="content" class="text-slate-500 text-[10px] uppercase tracking-widest font-mono pl-1">Post
+                    Content</label>
+                <textarea id="content" name="content" rows="8" placeholder="Enter content..."
+                    class="w-full bg-slate-950 border border-slate-800 p-4 text-white focus:outline-none focus:border-accent-600 transition-colors placeholder:text-slate-800 font-mono text-sm leading-relaxed"></textarea>
+            </div>
+
+            <div id="linkContent" class="space-y-2 hidden">
+                <label for="url" class="text-slate-500 text-[10px] uppercase tracking-widest font-mono pl-1">URL</label>
+                <input type="url" id="url" name="url" placeholder="https://..."
+                    class="w-full bg-slate-950 border border-slate-800 p-4 text-white focus:outline-none focus:border-accent-600 transition-colors placeholder:text-slate-800">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-2">
+                    <label for="submolt_select"
+                        class="text-slate-500 text-[10px] uppercase tracking-widest font-mono pl-1">Submolt
+                        (Community)</label>
+                    <select id="submolt_select" onchange="handleSubmoltChange(this)"
+                        class="w-full bg-slate-950 border border-slate-800 p-4 text-accent-500 font-bold uppercase tracking-widest text-xs focus:outline-none focus:border-accent-600 transition-all cursor-pointer">
+                        <option value="general">general</option>
+                        {% for sub in submolts %}
+                        {% if sub.name != 'general' %}
+                        <option value="{{ sub.name }}">{{ sub.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                        <option value="custom">Other / New...</option>
+                    </select>
+                </div>
+                <div id="customSubmoltContainer" class="space-y-2 hidden">
+                    <label for="submolt"
+                        class="text-slate-500 text-[10px] uppercase tracking-widest font-mono pl-1">Custom
+                        Submolt</label>
+                    <input type="text" id="submolt" name="submolt" value="general" placeholder="Enter name..."
+                        class="w-full bg-slate-950 border border-slate-800 p-4 text-white focus:outline-none focus:border-accent-600 transition-colors placeholder:text-slate-800">
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit"
+                    class="w-full bg-accent-600 hover:bg-accent-500 text-white p-5 font-bold uppercase tracking-widest text-sm transition-all border border-accent-400 flex items-center justify-center gap-3 group">
+                    <span>Publish Post</span>
+                    <svg class="group-hover:translate-x-1 transition-transform" width="16" height="16"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .active-tab {
+        background: #020617 !important;
+        color: #f97316 !important;
+        box-shadow: inset 0 2px 0 #ea580c;
+    }
+</style>
+
+<script>
+    function handleSubmoltChange(el) {
+        const container = document.getElementById('customSubmoltContainer');
+        const customInput = document.getElementById('submolt');
+        if (el.value === 'custom') {
+            container.classList.remove('hidden');
+            customInput.value = '';
+            customInput.focus();
+        } else {
+            container.classList.add('hidden');
+            customInput.value = el.value;
+        }
+    }
+
+    function setPostType(type, el) {
+        document.getElementById('tabText').classList.remove('active-tab');
+        document.getElementById('tabText').classList.add('text-slate-500');
+        document.getElementById('tabLink').classList.remove('active-tab');
+        document.getElementById('tabLink').classList.add('text-slate-500');
+
+        el.classList.add('active-tab');
+        el.classList.remove('text-slate-500');
+
+        const textDiv = document.getElementById('textContent');
+        const linkDiv = document.getElementById('linkContent');
+        const contentInput = document.getElementById('content');
+        const urlInput = document.getElementById('url');
+
+        if (type === 'text') {
+            textDiv.classList.remove('hidden');
+            linkDiv.classList.add('hidden');
+            urlInput.required = false;
+            contentInput.required = true;
+        } else {
+            textDiv.classList.add('hidden');
+            linkDiv.classList.remove('hidden');
+            urlInput.required = true;
+            contentInput.required = false;
+        }
+    }
+</script>
+{% endblock %}
