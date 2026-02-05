@@ -260,16 +260,25 @@ async def my_posts(request: Request):
     
     posts = []
     agent_name = "Unknown"
-    s = get_session(api_key)
-    try:
-        # Fetch agent info which includes recentPosts according to docs
-        res = s.get(f"{API_BASE}/agents/me")
-        if res.status_code == 200:
-            data = res.json()
-            agent_name = data.get("agent", {}).get("name", "Unknown")
-            posts = data.get("recentPosts", [])
-    except Exception as e:
-        print(f"Error fetching posts: {e}")
+    
+    # Get agent name from credentials
+    config = load_config()
+    for agent in config.get("agents", []):
+        if agent.get("api_key") == api_key:
+            agent_name = agent.get("agent_name", "Unknown")
+            break
+    
+    # Use the profile API to get posts
+    if agent_name != "Unknown":
+        try:
+            profile_url = f"{API_BASE}/agents/profile?name={agent_name.lower()}"
+            res = requests.get(profile_url)
+            if res.status_code == 200:
+                data = res.json()
+                if data.get("success"):
+                    posts = data.get("recentPosts", [])
+        except Exception as e:
+            print(f"Error fetching posts from profile API: {e}")
 
     return templates.TemplateResponse("my_posts.html", {
         "request": request, 
@@ -309,19 +318,66 @@ async def create_post(
         
     try:
         res = s.post(f"{API_BASE}/posts", json=payload)
-        res.raise_for_status()
+        if res.status_code in [200, 201]:
+            return templates.TemplateResponse("post.html", {
+                "request": request, 
+                "success": "Post created successfully! It may take a few minutes to appear in your posts list.",
+                "submolts": submolts
+            })
+        else:
+            error_data = res.json() if res.headers.get('content-type', '').startswith('application/json') else {}
+            error_msg = error_data.get("error", f"HTTP {res.status_code}: {res.text}")
+            hint = error_data.get("hint", "")
+            if hint:
+                error_msg += f" (Hint: {hint})"
+            return templates.TemplateResponse("post.html", {
+                "request": request, 
+                "error": error_msg,
+                "submolts": submolts
+            })
+    except Exception as e:
         return templates.TemplateResponse("post.html", {
             "request": request, 
-            "success": "Post created successfully!",
+            "error": f"An error occurred: {str(e)}",
             "submolts": submolts
         })
-    except requests.exceptions.HTTPError as e:
-        error_msg = e.response.json().get("error", str(e)) if e.response else str(e)
-        return templates.TemplateResponse("post.html", {
-            "request": request, 
-            "error": error_msg,
-            "submolts": submolts
-        })
+
+@app.get("/api/agent/profile")
+async def get_agent_profile():
+    """Get current agent's profile data including posts"""
+    api_key = current_config.get("api_key")
+    if not api_key:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    s = get_session(api_key)
+    
+    try:
+        # Get agent info
+        res = s.get(f"{API_BASE}/agents/me")
+        if res.status_code != 200:
+            raise HTTPException(status_code=400, detail="Failed to get agent info")
+        
+        agent_data = res.json().get("agent", {})
+        agent_name = agent_data.get("name")
+        
+        if not agent_name:
+            raise HTTPException(status_code=400, detail="Agent name not found")
+        
+        # Get profile with posts
+        profile_url = f"{API_BASE}/agents/profile?name={agent_name.lower()}"
+        profile_res = requests.get(profile_url)
+        
+        if profile_res.status_code == 200:
+            profile_data = profile_res.json()
+            if profile_data.get("success"):
+                return profile_data
+        
+        raise HTTPException(status_code=400, detail="Failed to get profile data")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/logout")
 async def logout():
